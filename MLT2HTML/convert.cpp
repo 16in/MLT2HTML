@@ -90,6 +90,9 @@ static TemplateVariable		sg_TemplateVariable;
 /*--------------------------------------------------------------------------
 * ファイルスコープ関数宣言
 */
+//-- 実行関係
+static void _runFunc( FILE* fp, aafile::AAFile* file );
+
 //-- template関係
 // ファイルヘッダのセットアップ
 static void _setupheader( const char* path );
@@ -172,75 +175,7 @@ void Run( const char* inputFile, const char* outputFile )
 		FILE* fp;
 		if( (fp = fopen( outputFile, "w" )) )
 		{
-			// ファイルヘッダを書き出す
-			_writeTemplate( fp, sg_HeaderTemplate );
-
-			for( size_t i = 0; i < file->pageCount; i++ )
-			{
-				sg_TemplateVariable.pageNum = i + 1;
-
-				// ページヘッダを書き出す
-				_writeTemplate( fp, sg_PageHeaderTemplate );
-
-				// ページ内容を書き出す
-				for( size_t j = 0; j < file->pageList[ i ].valueLength; j++ )
-				{
-					switch( file->pageList[ i ].value[ j ] )
-					{
-					case L'\r':
-						if( file->pageList[ i ].value[ j + 1 ] == L'\n' )
-						{
-							j++;
-						}
-					case L'\n':
-						fputs( "<br>\n", fp );
-
-						sg_TemplateVariable.fileSize += 2;// 改行は2byteで処理しておく
-						break;
-					case L'<':
-						fputs( "&lt;", fp );
-						sg_TemplateVariable.fileSize += 4;
-						break;
-					case L'>':
-						{
-							if( file->pageList[ i ].value[ j + 1 ] == L'>' )
-							{
-								int jmp = 0;
-								int num = 0;
-								for( num = 0; file->pageList[ i ].value[ j + 2 + num ] >= L'0' && file->pageList[ i ].value[ j + 2 + num ] <= L'9'; num++ )
-								{
-									jmp *= 10;
-									jmp += (file->pageList[ i ].value[ j + 2 + num ] - L'0');
-								}
-								if( num > 0 )
-								{
-									fprintf( fp, "<a href=\"#%d\">", jmp );
-									fprintf( fp, "&gt;&gt;%d", jmp );
-									fputs( "</a>", fp );
-
-									j += 2 + num - 1;
-									sg_TemplateVariable.fileSize += 2 + num;
-									break;
-								}
-							}
-
-							fputs( "&gt;", fp );
-							sg_TemplateVariable.fileSize += 4;
-						}
-						break;
-					default:
-						_writeChar( fp, file->pageList[ i ].value[ j ] );
-						break;
-					}
-				}
-
-				// ページフッタを書き出す
-				_writeTemplate( fp, sg_PageFooterTemplate );
-			}
-
-			// ファイルフッタを書き出す
-			_writeTemplate( fp, sg_FooterTemplate );
-
+			_runFunc( fp, file );
 			fclose( fp );
 		}
 
@@ -249,10 +184,130 @@ void Run( const char* inputFile, const char* outputFile )
 	}
 }
 
+/**
+* @brief html生成ルーチンの実行
+*	セットアップ済みのtemplateと入力文字列からhtmlファイルを生成します。
+*
+*	@param[in]	outputFile				出力ファイルパス
+*	@param[in]	srcString				入力内容文字列
+*	@param[in]	length					入力内容の文字列長
+*/
+void RunString( const char* outputFile, const char* srcString, unsigned long length )
+{
+	/**** template変数をクリアする ****/
+	memset( &sg_TemplateVariable, 0x00, sizeof( sg_TemplateVariable ) );
+
+
+	/**** 文字列をwcharへ変換 ****/
+	size_t wlen = mbstowcs( NULL, srcString, length );
+	wchar_t* srcWString = new wchar_t[ wlen + 1 ];
+	srcWString[ mbstowcs( srcWString, srcString, length ) ] = L'\0';
+
+
+	/**** ファイル生成 ****/
+	aafile::AAFile* file = aafile::AAFileReader::CreateAAFile( srcWString, wlen );
+	if( file )
+	{
+		// template変数構築
+		sg_TemplateVariable.filePath = "from String";
+		sg_TemplateVariable.pageCount = file->pageCount;
+
+
+		FILE* fp;
+		if( (fp = fopen( outputFile, "w" )) )
+		{
+			_runFunc( fp, file );
+			fclose( fp );
+		}
+
+		aafile::AAFileReader::ReleaseAAFile( file );
+	}
+
+	if( srcWString )
+	{
+		delete[] srcWString;
+	}
+}
+
 
 /*--------------------------------------------------------------------------
 * ファイルスコープ関数定義
 */
+/*------------
+* 実行
+*/
+void _runFunc( FILE* fp, aafile::AAFile* file )
+{
+	// ファイルヘッダを書き出す
+	_writeTemplate( fp, sg_HeaderTemplate );
+
+	for( size_t i = 0; i < file->pageCount; i++ )
+	{
+		sg_TemplateVariable.pageNum = i + 1;
+
+		// ページヘッダを書き出す
+		_writeTemplate( fp, sg_PageHeaderTemplate );
+
+		// ページ内容を書き出す
+		for( size_t j = 0; j < file->pageList[ i ].valueLength; j++ )
+		{
+			switch( file->pageList[ i ].value[ j ] )
+			{
+			case L'\r':
+				if( file->pageList[ i ].value[ j + 1 ] == L'\n' )
+				{
+					j++;
+				}
+			case L'\n':
+				fputs( "<br>\n", fp );
+
+				sg_TemplateVariable.fileSize += 2;// 改行は2byteで処理しておく
+				break;
+			case L'<':
+				fputs( "&lt;", fp );
+				sg_TemplateVariable.fileSize += 4;
+				break;
+			case L'>':
+				{
+					if( file->pageList[ i ].value[ j + 1 ] == L'>' )
+					{
+						int jmp = 0;
+						int num = 0;
+						for( num = 0; file->pageList[ i ].value[ j + 2 + num ] >= L'0' && file->pageList[ i ].value[ j + 2 + num ] <= L'9'; num++ )
+						{
+							jmp *= 10;
+							jmp += (file->pageList[ i ].value[ j + 2 + num ] - L'0');
+						}
+						if( num > 0 )
+						{
+							fprintf( fp, "<a href=\"#%d\">", jmp );
+							fprintf( fp, "&gt;&gt;%d", jmp );
+							fputs( "</a>", fp );
+
+							j += 2 + num - 1;
+							sg_TemplateVariable.fileSize += 2 + num;
+							break;
+						}
+					}
+
+					fputs( "&gt;", fp );
+					sg_TemplateVariable.fileSize += 4;
+				}
+				break;
+			default:
+				_writeChar( fp, file->pageList[ i ].value[ j ] );
+				break;
+			}
+		}
+
+		// ページフッタを書き出す
+		_writeTemplate( fp, sg_PageFooterTemplate );
+	}
+
+	// ファイルフッタを書き出す
+	_writeTemplate( fp, sg_FooterTemplate );
+}
+
 /*------------
 * template
 */

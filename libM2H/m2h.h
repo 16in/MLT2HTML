@@ -1,45 +1,56 @@
-/*--------------------------------------------------------------------------------------------
-*
-* MLT2HTML  コンバータヘッダ
-*
-*---------------------------------------------------------------------------------------------*/
-/*-- 更新履歴 --------------------------------------------------------------------------------
-*
-*	2012/12/05
-*		コンバータ実装 ver1.0
-*
-*---------------------------------------------------------------------------------------------*/
 #pragma once
 
 
-namespace convert
-{
+/**
+* @file m2h.h
+* @brief MLT2HTML DLLヘッダ
+*
+*	MLT2HTMLダイナミックリンクライブラリヘッダです。		\n
+*	\n
+*	全ての関数はC命名規則でstdcall呼び出し規則が適用されます。
+*
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef LIBM2H_EXPORTS
+#define M2H_IMPORT __declspec( dllexport )
+#else
+#define M2H_IMPORT __declspec( dllimport )
+#endif
+#define M2H_CALL __stdcall
 
 
 /**
+* @fn M2H_IMPORT void M2H_CALL M2H_SetupTemplate( const char* appdir )
 * @brief html生成templateのセットアップ
 *	$(appdir)/templateに在るtemplateファイルをセットアップします。
 *
 *	@param[in]	appdir					アプリケーションの在るディレクトリ
 */
-void SetupTemplate( const char* appdir );
+M2H_IMPORT void M2H_CALL M2H_SetupTemplate( const char* appdir );
 
 /**
+* @fn M2H_IMPORT void M2H_CALL M2H_CleanupTemplate( void )
 * @brief html生成templateのクリンナップ
 *	セットアップ済みのtemplateをクリンナップします。
 */
-void CleanupTemplate( void );
+M2H_IMPORT void M2H_CALL M2H_CleanupTemplate( void );
 
 /**
+* @fn M2H_IMPORT void M2H_CALL M2H_Run( const char* inputFile, const char* outputFile )
 * @brief html生成ルーチンの実行
 *	セットアップ済みのtemplateと入力ファイルからhtmlファイルを生成します。
 *
 *	@param[in]	inputFile				入力ファイルパス
 *	@param[in]	outputFile				出力ファイルパス
 */
-void Run( const char* inputFile, const char* outputFile );
+M2H_IMPORT void M2H_CALL M2H_Run( const char* inputFile, const char* outputFile );
 
 /**
+* @fn M2H_IMPORT void M2H_CALL M2H_RunString( const char* outputFile, const char* srcString, unsigned long length )
 * @brief html生成ルーチンの実行
 *	セットアップ済みのtemplateと入力文字列からhtmlファイルを生成します。
 *
@@ -47,17 +58,20 @@ void Run( const char* inputFile, const char* outputFile );
 *	@param[in]	srcString				入力内容文字列
 *	@param[in]	length					入力内容の文字列長
 */
-void RunString( const char* outputFile, const char* srcString, unsigned long length );
+M2H_IMPORT void M2H_CALL M2H_RunString( const char* outputFile, const char* srcString, unsigned long length );
 
 
+
+#ifdef __cplusplus
 }
+#endif
 
 
 
 /*----------------------------------------------------------------------
-*	MLT2HTML
+*	libM2H
 *
-*	Copyright (c) 2012 _16in/◆7N5y1wtOn2
+*	Copyright (c) 2013 _16in/◆7N5y1wtOn2
 *
 *	Permission is hereby granted, free of charge, to any person obtaining
 *	a copy of this software and associated documentation files (the "Software"),

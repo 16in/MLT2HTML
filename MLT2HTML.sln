@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MLT2HTML", "MLT2HTML\MLT2HTML.vcproj", "{8EB7AF1C-1567-46F5-9BBF-E10AD73A7E03}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libM2H", "libM2H\libM2H.vcproj", "{7FD352CC-EE68-4DC0-8C4C-C019D13C6DDD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +15,10 @@ Global
 		{8EB7AF1C-1567-46F5-9BBF-E10AD73A7E03}.Debug|Win32.Build.0 = Debug|Win32
 		{8EB7AF1C-1567-46F5-9BBF-E10AD73A7E03}.Release|Win32.ActiveCfg = Release|Win32
 		{8EB7AF1C-1567-46F5-9BBF-E10AD73A7E03}.Release|Win32.Build.0 = Release|Win32
+		{7FD352CC-EE68-4DC0-8C4C-C019D13C6DDD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7FD352CC-EE68-4DC0-8C4C-C019D13C6DDD}.Debug|Win32.Build.0 = Debug|Win32
+		{7FD352CC-EE68-4DC0-8C4C-C019D13C6DDD}.Release|Win32.ActiveCfg = Release|Win32
+		{7FD352CC-EE68-4DC0-8C4C-C019D13C6DDD}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
